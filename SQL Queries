@@ -1,0 +1,228 @@
+*Creating Tables
+
+MOVIE TABLE 
+CREATE TABLE MOVIE( 
+MovieID VARCHAR2(6) NOT NULL, 
+Budget NUMBER(15), 
+Country VARCHAR(21), 
+Genre VARCHAR(20) NOT NULL, 
+Gross NUMBER(10) 
+Movie VARCHAR(100), 
+Rating VARCHAR(20), 
+DateReleased DATE, 
+Runtime VARCHAR(4), 
+Score VARCHAR(18), 
+Votes NUMBER(10), 
+YearProduced CHAR(4), 
+CONSTRAINT MOVIE_PK PRIMARY KEY (MovieID) 
+); 
+
+ 
+
+COMPANY TABLE: 
+
+CREATE TABLE COMPANY( 
+
+    CompanyID VARCHAR(6) NOT NULL, 
+
+    Company VARCHAR(55) NOT NULL, 
+
+    MovieID VARCHAR2(6) NOT NULL, 
+
+    CONSTRAINT COMPANY_PK PRIMARY KEY (CompanyID), 
+
+    CONSTRAINT COMPANY_FK FOREIGN KEY (MovieID) REFERENCES MOVIE (MovieID) 
+
+); 
+
+ 
+
+ 
+
+DIRECTOR TABLE 
+
+CREATE TABLE DIRECTOR ( 
+
+DirectorID VARCHAR(6) NOT NULL, 
+
+D_FirstName VARCHAR(20), 
+
+D_MiddleName VARCHAR(20), 
+
+D_LastName VARCHAR (20), 
+
+D_Suffix VARCHAR (20), 
+
+MovieID VARCHAR2(6) NOT NULL, 
+
+CONSTRAINT DIRECTOR_PK PRIMARY KEY (DirectorID), 
+
+CONSTRAINT DIRECTOR_FK FOREIGN KEY (MovieID) REFERENCES MOVIE(MovieID)); 
+
+ 
+
+ 
+
+ 
+
+ 
+
+STAR TABLE 
+
+CREATE TABLE STAR ( 
+
+S_FirstName VARCHAR2 (15) NOT NULL, 
+
+S_LastName VARCHAR2(20), 
+
+S_MiddleName VARCHAR2(15), 
+
+S_Suffix VARCHAR2(5), 
+
+StarID VARCHAR2(10) NOT NULL, 
+
+MovieID VARCHAR2(6) NOT NULL, 
+
+CONSTRAINT STAR_PK PRIMARY KEY (StarID), 
+
+CONSTRAINT STAR_FK FOREIGN KEY (MovieID) REFERENCES MOVIE (MovieID) 
+
+); 
+
+ 
+
+WRITER TABLE 
+
+CREATE TABLE WRITER ( 
+
+WriterID VARCHAR(6) NOT NULL, 
+
+W_FirstName VARCHAR(20) NOT NULL, 
+
+W_MiddleName VARCHAR(20), 
+
+W_LastName VARCHAR(50), 
+
+W_Suffix VARCHAR(5),  
+
+MovieID VARCHAR2(6), 
+
+CONSTRAINT WRITER_PK PRIMARY KEY (WriterID),  
+
+CONSTRAINT WRITER_FK FOREIGN KEY (MovieID) REFERENCES MOVIE (MovieID)  
+
+); 
+
+
+*Questions/Queries:
+
+
+1.Comparing us movies versus international movies (by genre or budget or score?) 
+
+SELECT Movie, Genre, Gross 
+FROM MOVIE 
+WHERE Country = 'USA' 
+ORDER BY Gross DESC 
+FETCH FIRST 5 ROWS ONLY; 
+
+ 
+SELECT Movie, Genre, Gross 
+FROM MOVIE 
+WHERE Country <> 'USA' 
+ORDER BY Gross DESC 
+FETCH FIRST 5 ROWS ONLY; 
+
+ 
+
+SELECT Movie, Budget, Gross 
+FROM MOVIE 
+WHERE Country = 'USA' 
+ORDER BY Gross DESC 
+FETCH FIRST 5 ROWS ONLY; 
+
+ 
+SELECT Movie, Budget, Gross 
+FROM MOVIE 
+WHERE Country <> 'USA' 
+ORDER BY Gross DESC 
+FETCH FIRST 5 ROWS ONLY; 
+
+ 
+
+SELECT MOVIE.Movie, DIRECTOR.D_FirstName ||' '|| DIRECTOR.D_MiddleName ||' '|| DIRECTOR.D_LastName AS DirectorName, MOVIE.Gross 
+FROM MOVIE JOIN DIRECTOR ON MOVIE.MovieID=DIRECTOR.MovieID  
+WHERE Country = 'USA'  
+ORDER BY MOVIE.Gross DESC  
+FETCH FIRST 5 ROWS ONLY; 
+
+ 
+
+SELECT MOVIE.Movie, DIRECTOR.D_FirstName ||' '|| DIRECTOR.D_MiddleName ||' '|| DIRECTOR.D_LastName AS DirectorName, MOVIE.Gross 
+FROM MOVIE JOIN DIRECTOR ON MOVIE.MovieID=DIRECTOR.MovieID  
+WHERE Country <> 'USA'  
+ORDER BY MOVIE.Gross DESC  
+FETCH FIRST 5 ROWS ONLY;  
+
+
+2. Which genre has the highest average score? ( took genre from movie table and calculated averages using aggregate function to find the movie genre with the highest average ratings. Ordered them in order from highest to lowest and fetched the top genre)
+
+SELECT GENRE, ROUND(AVG(SCORE), 2) AS MAXAVGSCORE 
+FROM MOVIE 
+GROUP BY GENRE 
+ORDER BY MAXAVGSCORE DESC 
+FETCH FIRST 5 ROWS ONLY 
+
+
+
+3. If the budget is higher, do they get better ratings? Direct correlation? 
+(showing a query ordering by budget and then by score to show the comparison between the two. Highest budget does not necessarily mean highest score, one of the highest scoring movies has a fairly small budget compared to others) 
+
+SELECT Movie, ROUND(Budget, '$999,999,999') AS Budget, Score 
+FROM MOVIE 
+ORDER BY Budget DESC; 
+
+ 
+
+SELECT Movie, ROUND(Budget, '$999,999,999') AS Budget, Score 
+FROM MOVIE 
+ORDER BY Score DESC; 
+
+
+
+4. (COMPOUND) What movies are both from the US and are comedies? 
+
+SELECT MOVIE.Movie, DIRECTOR.D_FirstName ||''|| DIRECTOR.D_MiddleName ||''|| DIRECTOR.D_LastName AS DirectorName, COMPANY.Company 
+FROM MOVIE JOIN DIRECTOR ON MOVIE.MovieID=DIRECTOR.MovieID  
+JOIN COMPANY ON MOVIE.MovieID=COMPANY.MovieID 
+WHERE Country = 'USA'  
+INTERSECT  
+SELECT MOVIE.Movie, DIRECTOR.D_FirstName ||''|| DIRECTOR.D_MiddleName ||''|| DIRECTOR.D_LastName AS DirectorName, COMPANY.Company 
+FROM MOVIE JOIN DIRECTOR ON MOVIE.MovieID=DIRECTOR.MovieID  
+JOIN COMPANY ON MOVIE.MovieID=COMPANY.MovieID 
+WHERE Genre = 'Comedy'; 
+
+
+
+5. Which of the movies that Charlie Sheen stars in has the best rating? 
+Answer: The table below shows that out of all of the movies that Charlie Sheen is the star actor in, Platoon is the highest scored movie with a scoring of 8.1/10. Selecting the top five movies brought more of  
+
+
+
+Charlie Sheen’s Top 5 Movies’ Scores 
+
+SELECT  MOVIE.Movie, STAR.S_FirstName ||''|| STAR.S_MiddleName ||''|| STAR.S_LastName AS StarName, ROUND(MOVIE.Score, '9.9') AS SCORE,  
+DIRECTOR.D_FirstName ||''|| DIRECTOR.D_MiddleName ||''|| DIRECTOR.D_LastName AS DirectorName, COMPANY.Company 
+FROM MOVIE JOIN STAR ON MOVIE.MovieID=STAR.MovieID  
+JOIN DIRECTOR ON MOVIE.MovieID=DIRECTOR.MovieID 
+JOIN COMPANY ON MOVIE.MovieID=COMPANY.MovieID 
+WHERE STAR.StarID = 'A10'  
+ORDER BY MOVIE.Score DESC  
+FETCH First 5 Rows Only 
+
+Charlie Sheen’s Top 5 Movies’ Gross Incomes 
+
+SELECT MOVIE.Movie, STAR.S_FirstName ||''|| STAR.S_MiddleName ||''|| STAR.S_LastName AS StarName, TO_CHAR(MOVIE.Gross, '$999,999,999') AS GrossIncome 
+FROM MOVIE JOIN STAR ON MOVIE.MovieID=STAR.MovieID 
+WHERE STAR.StarID = 'A10' 
+ORDER BY MOVIE.Gross DESC 
+FETCH First 5 Rows Only 
